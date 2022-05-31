@@ -1,0 +1,18 @@
+{
+  "name": "idris2-node-postgres",
+  "version": "0.0.0",
+  "description": "Idris2 wrapper around the node-postgres library",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "rollup": "^2.56.2",
+    "rollup-plugin-terser": "^7.0.2"
+  },
+  "dependencies": {
+    "pg": "^8.7.3"
+  }
+}
