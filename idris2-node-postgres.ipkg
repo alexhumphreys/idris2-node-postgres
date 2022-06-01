@@ -13,7 +13,7 @@ package idris2-node-postgres
 -- langversion
 
 -- packages to add to search path
--- depends =
+depends = dom, sop -- For JS.Util module
 
 -- modules to install
 modules = Main
