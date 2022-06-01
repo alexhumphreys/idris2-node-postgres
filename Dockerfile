@@ -18,7 +18,8 @@ RUN make micropack SCHEME=chezscheme DB=${db}
 
 WORKDIR /opt/$PROJECT_NAME
 
-COPY ./src .
+COPY ./README.md .
+ADD src/ ./src
 COPY ./$PROJECT_NAME.ipkg .
 COPY ./package.json .
 COPY ./package-lock.json .
@@ -26,6 +27,8 @@ COPY ./package-lock.json .
 RUN /root/.pack/bin/pack --cg node build ./$PROJECT_NAME.ipkg
 
 FROM node:16
+
+ENV PROJECT_NAME "idris2-node-postgres"
 
 WORKDIR /opt/$PROJECT_NAME
 
