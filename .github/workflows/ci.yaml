@@ -1,0 +1,29 @@
+name: build
+on:
+  push:
+    branches:
+      - '**'
+    tags:
+      - '**'
+  pull_request:
+
+env:
+  SCHEME: scheme
+  IDRIS2_TESTS_CG: chez
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Checkout pack
+        uses: actions/checkout@v2
+        with:
+          repository: stefan-hoeck/idris2-pack
+          path: idris2-pack
+          ref: 'main'
+      - name: compose
+        run: |
+          docker compose up --abort-on-container-exit
+        shell: bash

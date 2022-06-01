@@ -9,5 +9,7 @@ services:
       - postgres
   postgres:
     image: postgres
+    environment:
+    - POSTGRES_PASSWORD=mypassword
 volumes:
   logvolume01: {}
