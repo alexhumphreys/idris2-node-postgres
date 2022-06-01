@@ -1,0 +1,13 @@
+version: "3.9"
+services:
+  example:
+    build:
+      context: .
+      args:
+        db: nightly-220530
+    links:
+      - postgres
+  postgres:
+    image: postgres
+volumes:
+  logvolume01: {}

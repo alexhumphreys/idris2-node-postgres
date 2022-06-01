@@ -1,5 +1,6 @@
 IPKG_FILE = ./idris2-node-postgres.ipkg
 DOCKER_IMAGE = snazzybucket/idris2-node-postgres
+PACK_DB = nightly-220530
 
 repl:
 	rlwrap pack --with-ipkg $(IPKG_FILE) --cg node repl ./src/Main.idr
@@ -12,7 +13,7 @@ build:
 	pack --cg node build $(IPKG_FILE)
 
 docker-build:
-	docker build -t $(DOCKER_IMAGE) .
+	docker build --build-arg db=$(PACK_DB) -t $(DOCKER_IMAGE) .
 
 docker-run:
 	docker run --rm -it $(DOCKER_IMAGE) /bin/bash
