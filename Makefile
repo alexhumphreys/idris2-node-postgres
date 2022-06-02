@@ -23,7 +23,12 @@ clean:
 	rm -rf ./node_modules
 
 run-db:
-	docker run -p 5432:5432 --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword -d postgres
+	docker run -p 5432:5432 \
+		--name some-postgres \
+		-v $(CURDIR)/fixtures:/docker-entrypoint-initdb.d/ \
+		-e POSTGRES_PASSWORD=mysecretpassword \
+		-e POSTGRES_DB=foo \
+		-d postgres
 
 kill-db:
 	docker rm -f some-postgres
@@ -32,6 +37,14 @@ run:
 	PGUSER=postgres \
 	PGHOST=127.0.0.1 \
 	PGPASSWORD=mysecretpassword \
-	PGDATABASE=postgres \
+	PGDATABASE=foo \
 	PGPORT=5432 \
 	node ./build/exec/idris2-node-postgres
+
+run-node:
+	PGUSER=postgres \
+	PGHOST=127.0.0.1 \
+	PGPASSWORD=mysecretpassword \
+	PGDATABASE=foo \
+	PGPORT=5432 \
+	node
