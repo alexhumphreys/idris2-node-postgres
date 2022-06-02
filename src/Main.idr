@@ -1,5 +1,7 @@
 import Promise
 import Util
+import Postgres
+import Debug.Trace
 
 data Pool : Type where [external]
 data Query : Type where [external]
@@ -25,14 +27,33 @@ getPool = primIO $ prim__get_pool
 """
 prim__query : Pool -> String -> promise String
 
+%foreign promisifyPrim """
+(pool, q) => {
+  return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
+}
+"""
+prim__query2 : Pool -> String -> promise Result
+
 query : Pool -> String -> Promise String
 query p s = promisify $ prim__query p s
+
+query2 : Pool -> String -> Promise Result
+query2 p s = promisify $ prim__query2 p s
+
+debug : Maybe (DPair Universe (\u => List (IdrisType u))) -> ()
+debug Nothing = ()
+debug (Just (MkDPair Str snd)) = trace (show snd) ()
+debug (Just (MkDPair Num snd)) = trace (show snd) ()
+debug (Just (MkDPair BigInt snd)) = trace (show snd) ()
+debug (Just (MkDPair (Opt x) snd)) = trace ("here") ()
 
 mainJS : Pool -> Promise String
 mainJS pool = do
   q <- query pool "SELECT NOW()"
-  r <- query pool "SELECT NOW()"
-  pure "res: \{q} \{r}"
+  r <- query2 pool "SELECT headcount,address FROM educba"
+  let x = fromResult r
+  lift $ debug x
+  pure "res: \{q}"
 
 main : IO ()
 main = do

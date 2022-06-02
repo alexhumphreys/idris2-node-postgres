@@ -33,6 +33,11 @@ data Universe : Type where
 raw_toUniverse :  (typeId : Bits32)
                -> (modifier : Int32)
                -> Maybe Universe
+raw_toUniverse typeId modifier =
+  case typeId of
+       23 => Just Num
+       1043 => Just Str
+       _ => Nothing
 
 universe : Result -> Maybe Universe
 universe r = raw_toUniverse (prim__dataTypeId r) (prim__dataTypeModifier r)
@@ -47,6 +52,11 @@ IdrisType (Opt x) = Maybe (IdrisType x)
 -- Convert a raw pointer to a value matching of the
 -- matching type (return Maybe or Either if this might fail)
 marshall : AnyPtr -> (u : Universe) -> IdrisType u
+marshall x Str = ?marshall_rhs_0
+marshall x Num = ?marshall_rhs_1
+marshall x BigInt = ?marshall_rhs_2
+marshall x (Opt y) = ?marshall_rhs_3
+
 
 extractAt : Result -> (u : Universe) -> Bits32 -> IdrisType u
 extractAt r u n = marshall (prim__valueAt n r) u
