@@ -20,7 +20,7 @@ getPool = primIO $ prim__get_pool
 
 %foreign promisifyPrim """
 (pool, q) => {
-  return pool.query(q).then(res => res.command)
+  return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res.command})
 }
 """
 prim__query : Pool -> String -> promise String
@@ -28,9 +28,15 @@ prim__query : Pool -> String -> promise String
 query : Pool -> String -> Promise String
 query p s = promisify $ prim__query p s
 
+mainJS : Pool -> Promise String
+mainJS pool = do
+  q <- query pool "SELECT NOW()"
+  r <- query pool "SELECT NOW()"
+  pure "res: \{q} \{r}"
+
 main : IO ()
 main = do
   pool <- getPool
-  let prom = query pool "SELECT NOW()"
+  let prom = mainJS pool
   resolve prom (\x => putStrLn x) (\err => putStrLn ("Error: " ++ err))
   putStrLn "done"
