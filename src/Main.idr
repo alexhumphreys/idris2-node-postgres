@@ -1,74 +1,29 @@
 import Promise
-import Util
 import Postgres
 import Debug.Trace
 
-data Pool : Type where [external]
-data Query : Type where [external]
-
-%foreign """
-node:lambda: () => {
-  const { Pool, Client } = require('pg')
-  // pools will use environment variables
-  // for connection information
-  const pool = new Pool({
-    user: 'postgres',
-    host: '127.0.0.1',
-    database: 'foo',
-    password: 'mysecretpassword',
-    port: 5432,
-  })
-  return pool
-}
-"""
-prim__get_pool : PrimIO Pool
-
-getPool : IO Pool
-getPool = primIO $ prim__get_pool
-
-%foreign promisifyPrim """
-(pool, q) => {
-  return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res.command})
-}
-"""
-prim__query : Pool -> String -> promise String
-
-%foreign promisifyPrim """
-(pool, q) => {
-  return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
-}
-"""
-prim__query2 : Pool -> String -> promise Result
-
-query : Pool -> String -> Promise String
-query p s = promisify $ prim__query p s
-
-query2 : Pool -> String -> Promise Result
-query2 p s = promisify $ prim__query2 p s
-
-debug2 : (List (u ** (IdrisType u))) -> ()
-debug2 [] = trace "end of row" ()
-debug2 ((MkDPair Str snd) :: xs) =
-  trace ("STR:" ++ snd) debug2 $ xs
-debug2 ((MkDPair Num snd) :: xs) =
-  trace ("Num:" ++ show snd) debug2 $ xs
-debug2 ((MkDPair BigInt snd) :: xs) =
-  trace ("BigInt:" ++ show snd) debug2 $ xs
-debug2 ((MkDPair (Opt x) snd) :: xs) = ()
+printStuff : (List (u ** (IdrisType u))) -> ()
+printStuff [] = trace "end of row" ()
+printStuff ((MkDPair Str snd) :: xs) =
+  trace ("STR:" ++ snd) printStuff $ xs
+printStuff ((MkDPair Num snd) :: xs) =
+  trace ("Num:" ++ show snd) printStuff $ xs
+printStuff ((MkDPair BigInt snd) :: xs) =
+  trace ("BigInt:" ++ show snd) printStuff $ xs
+printStuff ((MkDPair (Opt x) snd) :: xs) = ()
 
 go : Maybe (List (List (u ** (IdrisType u)))) -> ()
 go Nothing = trace ("empty list1") ()
 go (Just []) = trace ("empty list2") ()
 go (Just (x)) =
-  let y = map debug2 x in
+  let y = map printStuff x in
   trace (show y) ()
-
 
 mainJS : Pool -> Promise String
 mainJS pool = do
-  q <- query2 pool "SELECT NOW()"
+  q <- query pool "SELECT NOW()"
   lift $ go $ getAll q
-  r <- query2 pool "SELECT address,headcount,technologies FROM educba"
+  r <- query pool "SELECT address,headcount,technologies FROM educba"
   lift $ go $ getAll r
   pure "done"
 
@@ -77,4 +32,4 @@ main = do
   pool <- getPool
   let prom = mainJS pool
   resolve prom (\x => putStrLn x) (\err => putStrLn ("Error: " ++ err))
-  putStrLn "done"
+  putStrLn "done main"

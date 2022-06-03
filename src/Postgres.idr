@@ -1,9 +1,48 @@
+import Promise
+import Util
 import Debug.Trace
+
 %default total
+
+-- For creating connections
+
+data Pool : Type where [external]
+
+%foreign """
+node:lambda: () => {
+  const { Pool, Client } = require('pg')
+  // pools will use environment variables
+  // for connection information
+  const pool = new Pool({
+    user: 'postgres',
+    host: '127.0.0.1',
+    database: 'foo',
+    password: 'mysecretpassword',
+    port: 5432,
+  })
+  return pool
+}
+"""
+prim__get_pool : PrimIO Pool
+
+-- for querying
+getPool : IO Pool
+getPool = primIO $ prim__get_pool
 
 ||| Result returned from a database query
 public export
 data Result : Type where [external]
+
+%foreign promisifyPrim """
+(pool, q) => {
+  return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
+}
+"""
+prim__query : Pool -> String -> promise Result
+
+query : Pool -> String -> Promise Result
+query p s = promisify $ prim__query p s
+
 
 -- JS syntax has not been verified
 %foreign "node:lambda:x=>{console.log('count:'+x.rowCount);return x.rowCount}"
