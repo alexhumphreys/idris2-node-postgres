@@ -31,5 +31,5 @@ main : IO ()
 main = do
   pool <- getPool
   let prom = mainJS pool
-  resolve prom (\x => putStrLn x) (\err => putStrLn ("Error: " ++ err))
-  putStrLn "done main"
+  resolve prom (\x => putStrLn "Promise: \{x}") (\err => putStrLn ("Error: " ++ err))
+  putStrLn "main: done"
