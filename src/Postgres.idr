@@ -1,3 +1,4 @@
+import Debug.Trace
 %default total
 
 ||| Result returned from a database query
@@ -5,11 +6,11 @@ public export
 data Result : Type where [external]
 
 -- JS syntax has not been verified
-%foreign "node:lambda:x=>x.rowCount"
+%foreign "node:lambda:x=>{console.log('count:'+x.rowCount);return x.rowCount}"
 prim__rowCount : Result -> Bits32
 
 -- JS syntax has not been verified
-%foreign "node:lambda:x=>x.fields.length"
+%foreign "node:lambda:(x)=>{return x.fields.length}"
 prim__columnCount : Result -> Bits32
 
 -- JS syntax has not been verified
@@ -17,7 +18,7 @@ prim__columnCount : Result -> Bits32
 prim__dataTypeId : Result -> Bits32
 
 -- JS syntax has not been verified
-%foreign "node:lambda:(x,y)=>{console.log(x);console.log(y.fields);y.fields[x].dataTypeID}"
+%foreign "node:lambda:(x,y)=>{return y.fields[x].dataTypeID}"
 prim__dataTypeIdAt : Bits32 -> Result -> Bits32
 
 -- JS syntax has not been verified
@@ -29,8 +30,8 @@ prim__dataTypeModifier : Result -> Int32
 prim__dataTypeModifierAt : Result -> Int32
 
 -- JS syntax has not been verified
-%foreign "node:lambda:(x,y,r)=>{return r.rows[x][y]}"
-prim__valueAtAt : Bits32 -> Bits32 -> Result -> AnyPtr
+%foreign "node:lambda:(r,x,y)=>{console.log('r:'+r);console.log('x:'+x);console.log('y:'+y);return r.rows[x][y]}"
+prim__valueAtAt : Result -> Bits32 -> Bits32 -> AnyPtr
 
 -- JS syntax has not been verified
 %foreign "node:lambda:(x,y)=>{return y.rows[x]}"
@@ -53,7 +54,7 @@ raw_toUniverse typeId modifier =
   case typeId of
        23 => Just Num
        1043 => Just Str
-       _ => Nothing
+       x => trace "foo1 \{show x}" Nothing
 
 universe : Result -> Maybe Universe
 universe r = raw_toUniverse (prim__dataTypeId r) (prim__dataTypeModifier r)
@@ -80,7 +81,7 @@ marshall' : AnyPtr -> (u : Universe) -> Maybe $ IdrisType u
 marshall' x Str = Just $ believe_me x
 marshall' x Num = Just $ believe_me x
 marshall' x BigInt = Just $ believe_me x
-marshall' x (Opt y) = Nothing
+marshall' x (Opt y) =trace "foo2" Nothing
 
 extractAt : Result -> (u : Universe) -> Bits32 -> IdrisType u
 extractAt r u n = marshall (prim__valueAt n r) u
@@ -115,7 +116,7 @@ extractAll r u = case prim__rowCount r of
 fromResult : (r : Result) -> Maybe (u ** List (IdrisType u))
 fromResult r = case universe r of
   Just u  => Just (u ** extractAll r u)
-  Nothing => Nothing
+  Nothing => trace "foo3" Nothing
 
 ||| Extract the rows from a result.
 fromResult' : (r : Result) -> Maybe $ List (u ** (IdrisType u))
@@ -123,23 +124,29 @@ fromResult' = extractAll'
 
 -- Alex attempt
 
-getColumnCount : (Result) -> Bits32
-getColumnCount r = prim__columnCount r
-
 getTypeOfColumns : (Result) -> Maybe $ List Universe
 getTypeOfColumns r =
-  let n = getColumnCount r in
-  case n of
+  let n = prim__columnCount r in
+  case trace "n:\{show n}" n of
        0 => Just []
        n => traverse ((flip universeAt) r) [ 0 .. n-1 ]
 
 parseRow : List Universe -> (Result) -> Bits32 -> Maybe (List (u ** (IdrisType u)))
 parseRow xs r count =
   let columnsCount = length xs
-      row = prim__valueAtAt (count-1) in
-  do
-  -- extractAt' : Result -> Bits32 -> Maybe (u ** IdrisType u)
-  ?parseRow_rhs_1
+      rowAt = prim__valueAtAt r (count)
+      row = map rowAt [0 .. (the Bits32 (cast $ columnsCount)-1)]
+  in do
+  go xs row
+where
+  go : List Universe -> List AnyPtr -> Maybe (List (u ** (IdrisType u)))
+  go [] [] = Just []
+  go (u :: xs) (p :: ys) =
+    let v = marshall' p u in
+    do
+    Just $ (u ** !v) :: !(go xs ys)
+  go [] (x :: ys) = trace "foo4" Nothing
+  go (x :: xs) [] = trace "foo5" Nothing
 
 
 getAll' : List Universe -> (r : Result) -> Maybe (List (List (u ** (IdrisType u))))
