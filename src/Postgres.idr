@@ -111,8 +111,7 @@ marshall x Num = Just $ believe_me x
 marshall x BigInt = Just $ believe_me x
 marshall x (Opt y) = trace "foo2" Nothing
 
--- Alex attempt
-
+||| returns list of the types of the columns of the result row
 getTypeOfColumns : (Result) -> Maybe $ List Universe
 getTypeOfColumns r =
   let n = prim__columnCount r in
