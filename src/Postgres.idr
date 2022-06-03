@@ -1,3 +1,5 @@
+module Postgres
+
 import Promise
 import Util
 import Debug.Trace
@@ -103,6 +105,21 @@ IdrisType Num     = Double
 IdrisType BigInt  = Integer
 IdrisType (Opt x) = Maybe (IdrisType x)
 
+-- this is just an HList
+data Row : List Type -> Type where
+  Nil  : Row []
+  (::) : (v : t) -> (vs : Row ts) -> Row (t :: ts)
+
+0 RowTypes : List Universe -> List Type
+RowTypes []        = []
+RowTypes (u :: us) = IdrisType u :: RowTypes us
+
+0 RowU : List Universe -> Type
+RowU = Row . RowTypes
+
+0 Table : List Universe -> Type
+Table = List . RowU
+
 -- Convert a raw pointer to a value matching of the
 -- matching type (return Maybe or Either if this might fail)
 marshall : AnyPtr -> (u : Universe) -> Maybe $ IdrisType u
@@ -119,7 +136,7 @@ getTypeOfColumns r =
        0 => Just []
        n => traverse ((flip universeAt) r) [ 0 .. n-1 ]
 
-parseRow : List Universe -> (Result) -> Bits32 -> Maybe (List (u ** (IdrisType u)))
+parseRow : (us : List Universe) -> (Result) -> Bits32 -> Maybe (RowU us)
 parseRow xs r count =
   let columnsCount = length xs
       rowAt = prim__valueAtAt r (count)
@@ -127,18 +144,19 @@ parseRow xs r count =
   in do
   go xs row
 where
-  go : List Universe -> List AnyPtr -> Maybe (List (u ** (IdrisType u)))
-  go [] [] = Just []
+  go : (us : List Universe) -> List AnyPtr -> Maybe (RowU us)
+  go [] [] = Just $ []
   go (u :: xs) (p :: ys) =
     let v = marshall p u in
     do
-    Just $ (u ** !v) :: !(go xs ys)
+    Just $ !v :: !(go xs ys)
   go [] (x :: ys) = trace "foo4" Nothing
   go (x :: xs) [] = trace "foo5" Nothing
 
-
-getAll : (r : Result) -> Maybe (List (List (u ** (IdrisType u))))
+getAll : (r : Result) -> Maybe (Table us)
 getAll r = do
   us <- getTypeOfColumns r
   let rowCount = prim__rowCount r
-  traverse (parseRow us r) [0 .. rowCount-1]
+  let parse = parseRow us r
+  parsed <- traverse parse [0 .. rowCount-1]
+  pure ?res
