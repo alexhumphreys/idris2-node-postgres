@@ -52,9 +52,11 @@ raw_toUniverse :  (typeId : Bits32)
                -> Maybe Universe
 raw_toUniverse typeId modifier =
   case typeId of
+       -- SELECT typname, oid, typarray FROM pg_type ORDER BY oid;
        23 => Just Num
        1043 => Just Str
-       x => trace "foo1 \{show x}" Nothing
+       -- TIMESTAMPTZ: 1184
+       x => trace "TypeID not found: \{show x}" Nothing
 
 universe : Result -> Maybe Universe
 universe r = raw_toUniverse (prim__dataTypeId r) (prim__dataTypeModifier r)

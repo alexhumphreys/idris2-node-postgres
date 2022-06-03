@@ -63,35 +63,14 @@ go (Just (x)) =
   let y = map debug2 x in
   trace (show y) ()
 
-debug' : Maybe (List (u ** (IdrisType u))) -> ()
-debug' Nothing = ()
-debug' (Just []) = ()
-debug' (Just ((MkDPair Str snd) :: xs)) =
-  trace ("STR:" ++ snd) debug' $ Just xs
-debug' (Just ((MkDPair Num snd) :: xs)) =
-  trace ("Num:" ++ show snd) debug' $ Just xs
-debug' (Just ((MkDPair BigInt snd) :: xs)) =
-  trace ("BigInt:" ++ show snd) debug' $ Just xs
-debug' (Just ((MkDPair (Opt x) snd) :: xs)) = ()
-
-debug : Maybe (DPair Universe (\u => List (IdrisType u))) -> ()
-debug Nothing = ()
-debug (Just (MkDPair Str [])) = trace ("STR") ()
-debug (Just (MkDPair Str (x :: xs))) = trace ("STR->\{x}<-STR..." ++ show xs) ()
-debug (Just (MkDPair Num [])) = trace ("Num" ++ ?jjj) ()
-debug (Just (MkDPair Num (x :: xs))) = trace ("Num->\{show x}<-NUM..." ++ show xs) ()
-debug (Just (MkDPair BigInt snd)) = trace ("BigInt" ++ show snd) ()
-debug (Just (MkDPair (Opt x) snd)) = trace ("here") ()
 
 mainJS : Pool -> Promise String
 mainJS pool = do
-  q <- query pool "SELECT NOW()"
+  q <- query2 pool "SELECT NOW()"
+  lift $ go $ getAll q
   r <- query2 pool "SELECT address,headcount,technologies FROM educba"
-  -- let x = fromResult' r
-  -- lift $ debug' x
-  let y = getAll r
-  lift $ go y
-  pure "res: \{q}"
+  lift $ go $ getAll r
+  pure "done"
 
 main : IO ()
 main = do
