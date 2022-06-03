@@ -8,6 +8,7 @@ import Debug.Trace
 
 -- For creating connections
 
+public export
 data Pool : Type where [external]
 
 %foreign """
@@ -28,6 +29,7 @@ node:lambda: () => {
 prim__get_pool : PrimIO Pool
 
 -- for querying
+export
 getPool : IO Pool
 getPool = primIO $ prim__get_pool
 
@@ -42,6 +44,7 @@ data Result : Type where [external]
 """
 prim__query : Pool -> String -> promise Result
 
+public export
 query : Pool -> String -> Promise Result
 query p s = promisify $ prim__query p s
 
@@ -106,17 +109,21 @@ IdrisType BigInt  = Integer
 IdrisType (Opt x) = Maybe (IdrisType x)
 
 -- this is just an HList
+public export
 data Row : List Type -> Type where
   Nil  : Row []
   (::) : (v : t) -> (vs : Row ts) -> Row (t :: ts)
 
+public export
 0 RowTypes : List Universe -> List Type
 RowTypes []        = []
 RowTypes (u :: us) = IdrisType u :: RowTypes us
 
+public export
 0 RowU : List Universe -> Type
 RowU = Row . RowTypes
 
+public export
 0 Table : List Universe -> Type
 Table = List . RowU
 
@@ -153,10 +160,11 @@ where
   go [] (x :: ys) = trace "foo4" Nothing
   go (x :: xs) [] = trace "foo5" Nothing
 
-getAll : (r : Result) -> Maybe (Table us)
+public export
+getAll : (r : Result) -> Maybe (us ** Table us)
 getAll r = do
   us <- getTypeOfColumns r
   let rowCount = prim__rowCount r
   let parse = parseRow us r
   parsed <- traverse parse [0 .. rowCount-1]
-  pure ?res
+  pure $ (us ** parsed)
