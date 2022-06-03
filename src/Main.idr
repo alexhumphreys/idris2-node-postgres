@@ -33,8 +33,7 @@ debug2 ((Opt x) :: xs) (v :: vs) =
 go2 : Maybe (us ** Table us) -> ()
 go2 Nothing = ?go3_rhs_0
 go2 (Just (MkDPair fst snd)) =
-  let f = debug2 fst
-      z = map f snd
+  let z = map (debug2 fst) snd
   in
   trace (show z) ()
 
