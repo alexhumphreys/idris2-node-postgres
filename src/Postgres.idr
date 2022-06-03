@@ -66,11 +66,11 @@ IdrisType (Opt x) = Maybe (IdrisType x)
 
 -- Convert a raw pointer to a value matching of the
 -- matching type (return Maybe or Either if this might fail)
-marshall' : AnyPtr -> (u : Universe) -> Maybe $ IdrisType u
-marshall' x Str = Just $ believe_me x
-marshall' x Num = Just $ believe_me x
-marshall' x BigInt = Just $ believe_me x
-marshall' x (Opt y) = trace "foo2" Nothing
+marshall : AnyPtr -> (u : Universe) -> Maybe $ IdrisType u
+marshall x Str = Just $ believe_me x
+marshall x Num = Just $ believe_me x
+marshall x BigInt = Just $ believe_me x
+marshall x (Opt y) = trace "foo2" Nothing
 
 -- Alex attempt
 
@@ -92,20 +92,15 @@ where
   go : List Universe -> List AnyPtr -> Maybe (List (u ** (IdrisType u)))
   go [] [] = Just []
   go (u :: xs) (p :: ys) =
-    let v = marshall' p u in
+    let v = marshall p u in
     do
     Just $ (u ** !v) :: !(go xs ys)
   go [] (x :: ys) = trace "foo4" Nothing
   go (x :: xs) [] = trace "foo5" Nothing
 
 
-getAll' : List Universe -> (r : Result) -> Maybe (List (List (u ** (IdrisType u))))
-getAll' xs r =
-  let rowCount = prim__rowCount r
-  in do
-  traverse (parseRow xs r) [0 .. rowCount-1]
-
 getAll : (r : Result) -> Maybe (List (List (u ** (IdrisType u))))
 getAll r = do
-  ty <- getTypeOfColumns r
-  getAll' ty r
+  us <- getTypeOfColumns r
+  let rowCount = prim__rowCount r
+  traverse (parseRow us r) [0 .. rowCount-1]
