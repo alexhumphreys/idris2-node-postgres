@@ -2,6 +2,16 @@ import Promise
 import Postgres
 import Debug.Trace
 
+data Country =
+  MkCountry String Nat
+Show Country where
+  show (MkCountry x k) = "MkCountry \{x} \{show k}"
+
+countryFromRow : (us : List Universe) -> (RowU us) -> Maybe Country
+countryFromRow ([Str, Num]) ([v, x]) = Just $ MkCountry v (cast x)
+countryFromRow (x :: _) _ = Nothing
+countryFromRow ([]) _ = Nothing
+
 debug1 : (List (u ** (IdrisType u))) -> ()
 debug1 [] = trace "end of row" ()
 debug1 ((MkDPair Str snd) :: xs) =
@@ -37,12 +47,20 @@ go2 (Just (MkDPair fst snd)) =
   in
   trace (show z) ()
 
+tryCountry : Maybe (us ** Table us) -> Maybe (List Country)
+tryCountry Nothing = Nothing
+tryCountry (Just (MkDPair fst snd)) = traverse (countryFromRow fst) snd
+
 mainJS : Pool -> Promise String
 mainJS pool = do
   -- q <- query pool "SELECT NOW()" -- fails because time isn't implimented
   -- lift $ go3 $ getAll q
   r <- query pool "SELECT address,headcount,technologies FROM educba"
   lift $ go2 $ getAll r
+  b <- query pool "SELECT country,total FROM board"
+  countries <- lift $ getAll b
+  ls <- lift $ tryCountry countries
+  lift $ trace ("Board: \{show ls}") ()
   pure "done"
 
 main : IO ()
