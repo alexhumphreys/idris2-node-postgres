@@ -48,3 +48,7 @@ run-node:
 	PGDATABASE=foo \
 	PGPORT=5432 \
 	node
+
+run-pgcli:
+	echo pw: mysecretpassword
+	pgcli -u postgres -h 127.0.0.1
