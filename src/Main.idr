@@ -47,7 +47,7 @@ query2 : Pool -> String -> Promise Result
 query2 p s = promisify $ prim__query2 p s
 
 debug2 : (List (u ** (IdrisType u))) -> ()
-debug2 [] = trace "empty debug2" ()
+debug2 [] = trace "end of row" ()
 debug2 ((MkDPair Str snd) :: xs) =
   trace ("STR:" ++ snd) debug2 $ xs
 debug2 ((MkDPair Num snd) :: xs) =
@@ -86,7 +86,7 @@ debug (Just (MkDPair (Opt x) snd)) = trace ("here") ()
 mainJS : Pool -> Promise String
 mainJS pool = do
   q <- query pool "SELECT NOW()"
-  r <- query2 pool "SELECT headcount,technologies FROM educba"
+  r <- query2 pool "SELECT address,headcount,technologies FROM educba"
   -- let x = fromResult' r
   -- lift $ debug' x
   let y = getAll r
