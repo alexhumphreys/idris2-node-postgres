@@ -45,9 +45,8 @@ data Result : Type where [external]
 prim__query : Pool -> String -> promise Result
 
 public export
-query : Pool -> String -> Promise Result
+query : Pool -> String -> Promise String IO Result
 query p s = promisify $ prim__query p s
-
 
 -- JS syntax has not been verified
 %foreign "node:lambda:x=>{console.log('count:'+x.rowCount);return x.rowCount}"
