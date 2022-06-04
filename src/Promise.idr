@@ -1,7 +1,7 @@
 ||| from https://github.com/idris-community/inigo
 module Promise
 
-export
+public export
 data Promise : Type -> Type where
   MkPromise : ((a -> IO ()) -> (String -> IO ()) -> IO ()) -> Promise a
 
