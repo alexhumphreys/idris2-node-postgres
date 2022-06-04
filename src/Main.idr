@@ -1,5 +1,5 @@
-import Promise
-import Postgres
+import PG.Promise
+import PG.Postgres
 import Debug.Trace
 
 data Country =
@@ -59,7 +59,7 @@ tryCountry : Maybe (us ** Table us) -> Maybe (List Country)
 tryCountry Nothing = Nothing
 tryCountry (Just (MkDPair fst snd)) = traverse (countryFromRow fst) snd
 
-mainJS : Pool -> Promise String
+mainJS : Pool -> Promise String IO ()
 mainJS pool = do
   -- q <- query pool "SELECT NOW()" -- fails because time isn't implimented
   -- lift $ go3 $ getAll q
@@ -70,11 +70,11 @@ mainJS pool = do
   countries <- lift $ getAll b
   ls <- lift $ tryCountry countries
   lift $ trace ("Board: \{show ls}") ()
-  pure "done"
+  pure ()
 
 main : IO ()
 main = do
   pool <- getPool
   let prom = mainJS pool
-  resolve prom (\x => putStrLn "Promise: \{x}") (\err => putStrLn ("Error: " ++ err))
+  resolve prom (\x => putStrLn "Promise: \{show x}") (\err => putStrLn ("Error: " ++ err))
   putStrLn "main: done"

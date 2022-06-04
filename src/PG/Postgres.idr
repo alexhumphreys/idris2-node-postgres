@@ -1,7 +1,7 @@
-module Postgres
+module PG.Postgres
 
-import Promise
-import Util
+import PG.Promise
+import PG.Util
 import Debug.Trace
 
 %default total
@@ -42,12 +42,11 @@ data Result : Type where [external]
   return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
 }
 """
-prim__query : Pool -> String -> promise Result
+prim__query : Pool -> String -> promise String Result
 
 public export
-query : Pool -> String -> Promise Result
+query : Pool -> String -> Promise String IO Result
 query p s = promisify $ prim__query p s
-
 
 -- JS syntax has not been verified
 %foreign "node:lambda:x=>{console.log('count:'+x.rowCount);return x.rowCount}"
