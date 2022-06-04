@@ -80,8 +80,10 @@ prim__valueAtAt : Result -> Bits32 -> Bits32 -> AnyPtr
 ||| A universeof supported types
 public export
 data Universe : Type where
+  Bool_   : Universe
   Str    : Universe
   Num    : Universe
+  Text   : Universe
   BigInt : Universe
   Opt    : Universe -> Universe
 
@@ -93,7 +95,9 @@ raw_toUniverse :  (typeId : Bits32)
 raw_toUniverse typeId modifier =
   case typeId of
        -- SELECT typname, oid, typarray FROM pg_type ORDER BY oid;
+       16 => Just Bool_
        23 => Just Num
+       25 => Just Text
        1043 => Just Str
        -- TIMESTAMPTZ: 1184
        x => trace "TypeID not found: \{show x}" Nothing
@@ -103,8 +107,10 @@ universeAt n r = raw_toUniverse (prim__dataTypeIdAt n r) (prim__dataTypeModifier
 
 public export
 IdrisType : Universe -> Type
+IdrisType Bool_   = Bool
 IdrisType Str     = String
 IdrisType Num     = Double
+IdrisType Text    = String
 IdrisType BigInt  = Integer
 IdrisType (Opt x) = Maybe (IdrisType x)
 
@@ -130,8 +136,10 @@ Table = List . RowU
 -- Convert a raw pointer to a value matching of the
 -- matching type (return Maybe or Either if this might fail)
 marshall : AnyPtr -> (u : Universe) -> Maybe $ IdrisType u
+marshall x Bool_ = Just $ believe_me x
 marshall x Str = Just $ believe_me x
 marshall x Num = Just $ believe_me x
+marshall x Text = Just $ believe_me x
 marshall x BigInt = Just $ believe_me x
 marshall x (Opt y) = trace "foo2" Nothing
 
