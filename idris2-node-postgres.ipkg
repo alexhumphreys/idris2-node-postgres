@@ -16,7 +16,7 @@ package idris2-node-postgres
 -- depends =
 
 -- modules to install
-modules = Main
+modules = Main, Postgres, Promise, Util
 
 -- main file (i.e. file to load at REPL)
 main = Main
