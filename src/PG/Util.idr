@@ -1,5 +1,5 @@
 ||| from https://github.com/idris-community/inigo
-module Util
+module PG.Util
 
 public export
 toObject : String

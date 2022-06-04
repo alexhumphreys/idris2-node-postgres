@@ -1,7 +1,7 @@
-module Postgres
+module PG.Postgres
 
-import Promise
-import Util
+import PG.Promise
+import PG.Util
 import Debug.Trace
 
 %default total

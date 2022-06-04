@@ -1,5 +1,5 @@
 ||| from https://github.com/idris-community/inigo
-module Promise
+module PG.Promise
 
 public export
 data Promise : (e : Type) -> (Type -> Type) -> Type -> Type where

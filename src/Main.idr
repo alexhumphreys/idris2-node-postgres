@@ -1,5 +1,5 @@
-import Promise
-import Postgres
+import PG.Promise
+import PG.Postgres
 import Debug.Trace
 
 data Country =
