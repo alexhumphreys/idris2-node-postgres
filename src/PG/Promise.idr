@@ -66,11 +66,11 @@ parallel (MkPromise s1) (MkPromise s2) = MkPromise $ \err => \cb => do
   s2 err cb
 
 public export
-promise : Type -> Type
-promise a = (a -> IO ()) -> (String -> IO ()) -> PrimIO ()
+promise : Type -> Type -> Type
+promise e a = (a -> IO ()) -> (e -> IO ()) -> PrimIO ()
 
 export
-promisify : promise a -> Promise String IO a
+promisify : promise e a -> Promise e IO a
 promisify prim =
   MkPromise (\ok, err => primIO $ prim ok err)
 

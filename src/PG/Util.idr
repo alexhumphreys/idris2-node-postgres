@@ -1,6 +1,8 @@
 ||| from https://github.com/idris-community/inigo
 module PG.Util
 
+import Pg.Promise
+
 public export
 toObject : String
 toObject = "let toObject=((list)=>Object.fromEntries([...Array(list.h).keys()].map((i)=>{let x=list['a'+(i+1)];return [x.a1,x.a2]})));"
@@ -23,3 +25,11 @@ public export
 promisifyResolve: String -> String -> String
 promisifyResolve res str =
   "node:lambda:" ++ promisifyPrim_ ( "(...inner)=>{(" ++ str ++ ")(...inner);return Promise.resolve(" ++ res ++ ");}" )
+
+%foreign (promisifyPrim "(_,err)=>new Promise((resolve,reject)=>reject(err))")
+reject__prim : String -> promise String a
+
+export
+reject : String -> Promise String IO a
+reject err =
+  promisify (reject__prim err)

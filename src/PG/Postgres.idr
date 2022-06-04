@@ -42,7 +42,7 @@ data Result : Type where [external]
   return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
 }
 """
-prim__query : Pool -> String -> promise Result
+prim__query : Pool -> String -> promise String Result
 
 public export
 query : Pool -> String -> Promise String IO Result
