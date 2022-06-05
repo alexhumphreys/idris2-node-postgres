@@ -38,6 +38,7 @@ public export
 data Result : Type where [external]
 
 -- TODO no idea what that e parameter is doing in the foreign function call
+-- but it doesn't work without it, there's `undefined` passed as the first param to this function
 %foreign promisifyPrim """
 (e, pool, q) => {
   return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
