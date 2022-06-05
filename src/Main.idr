@@ -59,7 +59,7 @@ tryCountry : Maybe (us ** Table us) -> Maybe (List Country)
 tryCountry Nothing = Nothing
 tryCountry (Just (MkDPair fst snd)) = traverse (countryFromRow fst) snd
 
-mainJS : Pool -> Promise String IO ()
+mainJS : Pool -> Promise e IO ()
 mainJS pool = do
   -- q <- query pool "SELECT NOW()" -- fails because time isn't implimented
   -- lift $ go3 $ getAll q
