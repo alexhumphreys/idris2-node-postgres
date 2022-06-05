@@ -15,3 +15,9 @@ total INTEGER);
 
 INSERT INTO board(country,total) VALUES ('sweden',10),('ireland',10);
 
+CREATE TABLE IF NOT EXISTS foo
+(id SERIAL PRIMARY KEY,
+bar INTEGER,
+baz INTEGER);
+
+INSERT INTO foo(bar,baz) VALUES (6,8),(1,7);
