@@ -30,6 +30,6 @@ promisifyResolve res str =
 reject__prim : e -> promise e a
 
 export
-reject : e -> Promise e IO a
+reject : FromString e => e -> Promise e IO a
 reject err =
   promisify (reject__prim err)
