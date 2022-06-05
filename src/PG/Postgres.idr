@@ -30,7 +30,7 @@ prim__get_pool : PrimIO Pool
 
 -- for querying
 export
-getPool : IO Pool
+getPool : HasIO io => io Pool
 getPool = primIO $ prim__get_pool
 
 ||| Result returned from a database query
