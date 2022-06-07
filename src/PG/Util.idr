@@ -27,9 +27,9 @@ promisifyResolve res str =
   "node:lambda:" ++ promisifyPrim_ ( "(...inner)=>{(" ++ str ++ ")(...inner);return Promise.resolve(" ++ res ++ ");}" )
 
 %foreign (promisifyPrim "(_,err)=>new Promise((resolve,reject)=>reject(err))")
-reject__prim : String -> promise String a
+reject__prim : e -> promise e a
 
 export
-reject : String -> Promise String IO a
+reject : FromString e => e -> Promise e IO a
 reject err =
   promisify (reject__prim err)

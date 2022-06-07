@@ -30,22 +30,24 @@ prim__get_pool : PrimIO Pool
 
 -- for querying
 export
-getPool : IO Pool
+getPool : HasIO io => io Pool
 getPool = primIO $ prim__get_pool
 
 ||| Result returned from a database query
 public export
 data Result : Type where [external]
 
+-- TODO no idea what that e parameter is doing in the foreign function call
+-- but it doesn't work without it, there's `undefined` passed as the first param to this function
 %foreign promisifyPrim """
-(pool, q) => {
+(e, pool, q) => {
   return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
 }
 """
-prim__query : Pool -> String -> promise String Result
+prim__query : Pool -> String -> promise e Result
 
 public export
-query : Pool -> String -> Promise String IO Result
+query : Pool -> String -> Promise e IO Result
 query p s = promisify $ prim__query p s
 
 -- JS syntax has not been verified
