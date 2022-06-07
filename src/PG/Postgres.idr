@@ -14,15 +14,14 @@ data Pool : Type where [external]
 %foreign """
 node:lambda: () => {
   const { Pool, Client } = require('pg')
-  // pools will use environment variables
-  // for connection information
-  const pool = new Pool({
-    user: 'postgres',
-    host: '127.0.0.1',
-    database: 'foo',
-    password: 'mysecretpassword',
-    port: 5432,
-  })
+  const pool = new Pool()
+  //{
+    //user: 'postgres',
+    //host: '127.0.0.1',
+    //database: 'foo',
+    //password: 'mysecretpassword',
+    //port: 5432,
+  //}
   return pool
 }
 """
