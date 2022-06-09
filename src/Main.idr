@@ -66,6 +66,7 @@ mainJS pool = do
   r <- query pool "SELECT address,headcount,technologies FROM educba"
   lift $ go2 $ getAll r
   _ <- query pool "INSERT INTO board(country,total) VALUES ('germany',10),('france',10);"
+  _ <- query' pool "INSERT INTO board(country,total) VALUES ($1, $2);" [Str, Num] ["italy", 10]
   b <- query pool "SELECT country,total FROM board"
   countries <- lift $ getAll b
   ls <- lift $ tryCountry countries

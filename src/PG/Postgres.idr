@@ -176,3 +176,27 @@ getAll r = do
   let parse = parseRow us r
   parsed <- traverse parse [0 .. rowCount-1]
   pure $ (us ** parsed)
+
+
+data Values : Type where [external]
+
+%foreign "node:lambda: () => []"
+prim__emptyValues : Values
+
+%foreign "node:lambda: (v,vs) => [v, ...vs]"
+prim__cons : AnyPtr -> Values -> Values
+
+convert : (us : List Universe) -> RowU us -> Values
+convert [] [] = prim__emptyValues
+convert (x :: xs) (v :: vs) = prim__cons (believe_me v) (convert xs vs)
+
+%foreign promisifyPrim """
+(e, pool, q, ar) => {
+  return pool.query({text: q, values: ar, rowMode: 'array'}).then(res => {console.log(res); return res})
+}
+"""
+prim__query' : Pool -> String -> Values -> promise e Result
+
+public export
+query' : Pool -> String -> (us : List Universe) -> RowU us -> Promise e IO Result
+query' p s us vs = promisify $ prim__query' p s $ convert us vs
