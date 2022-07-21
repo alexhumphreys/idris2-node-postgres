@@ -16,15 +16,15 @@ package idris2-node-postgres
 depends = promise
 
 -- modules to install
-modules = Main
-  , PG.Postgres
-  , PG.Util
+modules =
+  PG.Postgres
 
 -- main file (i.e. file to load at REPL)
-main = Main
+main = PG.Postgres
 
 -- name of executable
 executable = "idris2-node-postgres"
+
 opts = "--cg node"
 sourcedir = "src"
 -- builddir =

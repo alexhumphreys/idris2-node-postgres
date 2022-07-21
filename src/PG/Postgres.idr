@@ -36,6 +36,8 @@ getPool = primIO $ prim__get_pool
 public export
 data Result : Type where [external]
 
+
+{-
 -- TODO no idea what that e parameter is doing in the foreign function call
 -- but it doesn't work without it, there's `undefined` passed as the first param to this function
 %foreign """
@@ -45,16 +47,17 @@ node:lambda:(e, pool, q) => {
 """
 prim__query : Pool -> String -> Promise e IO Result
 
+public export
+query : Pool -> String -> Promise e IO Result
+query p s = prim__query p s
+-}
+
 %foreign """
 node:lambda:(x) => {
   console.log(x)
 }
 """
 prim__print_result : Result -> Promise e IO ()
-
-public export
-query : Pool -> String -> Promise e IO Result
-query p s = prim__query p s
 
 -- JS syntax has not been verified
 %foreign "node:lambda:x=>{console.log('count:'+x.rowCount);return x.rowCount}"
@@ -230,11 +233,44 @@ export
 getPool_ : HasIO io => io Pool
 getPool_ = primIO $ prim__get_pool
 
+%foreign """
+node:lambda:(e, pool, q, resolve, reject) => {
+  return pool.query({text: q, rowMode: 'array'})
+    .then(res => {
+      console.log(res);
+      resolve(res)();
+    })
+    .catch(err => {
+      console.log(err);
+      reject(err)();}
+    );
+}
+"""
+prim__query : Pool -> String -> (Result -> PrimIO ()) -> (e -> PrimIO ()) -> PrimIO ()
+
+covering
+public export
+query : Pool -> String -> Promise e IO Result
+query p s = promise $ \resolve', reject' => primIO $ prim__query p s (\r => trace "here" $ toPrim $ resolve' r) (\e => trace "there" $ toPrim $ reject' e)
+
+foo : Result -> String
+foo x =
+  case getAll x of
+       Nothing => "was nothing"
+       (Just (([] ** snd))) => "was empty list"
+       (Just (((Bool_ :: xs) ** snd))) => "was type_5"
+       (Just (((Str :: xs) ** snd))) => "was type_6"
+       (Just (((Num :: xs) ** snd))) => "was type_7"
+       (Just (((Text :: xs) ** snd))) => "was type_8"
+       (Just (((BigInt :: xs) ** snd))) => "was type_9"
+       (Just ((((Opt y) :: xs) ** snd))) => "was type_10"
+
 covering
 mainJS : Pool -> Promise e IO ()
 mainJS pool = do
   r <- query pool "SELECT * FROM users"
-  prim__print_result r
+  let output = foo r
+  putStrLn output
   pure ()
 
 covering
@@ -242,5 +278,5 @@ main : IO ()
 main = do
   pool <- getPool_
   -- let prom = mainJS pool
-  runPromise {e=String} (\x => pure ()) (\_ => pure ()) $ mainJS pool
+  runPromise {e=String} (\x => trace "main1" $ pure ()) (\_ => trace "main2" $ pure ()) $ mainJS pool
   pure () -- resolve prom (\x => putStrLn "Promise: \{show x}") (\err => putStrLn ("Error: " ++ err))

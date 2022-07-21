@@ -3,7 +3,7 @@ DOCKER_IMAGE = snazzybucket/idris2-node-postgres
 PACK_DB = nightly-220530
 
 repl:
-	rlwrap pack --with-ipkg $(IPKG_FILE) --cg node repl ./src/Main.idr
+	rlwrap pack --with-ipkg $(IPKG_FILE) --cg node repl ./src/PG/Postgres.idr
 
 install-node-deps:
 	npm install
