@@ -1,7 +1,7 @@
 ||| from https://github.com/idris-community/inigo
 module PG.Util
 
-import PG.Promise
+import Promise
 
 public export
 toObject : String
