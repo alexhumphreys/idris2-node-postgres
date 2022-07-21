@@ -1,4 +1,4 @@
-import PG.Promise
+import Promise
 import PG.Postgres
 import Debug.Trace
 

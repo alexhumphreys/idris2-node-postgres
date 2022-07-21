@@ -1,7 +1,7 @@
 module PG.Postgres
 
-import PG.Promise
-import PG.Util
+import Promise
+-- import PG.Util
 import Debug.Trace
 
 %default total
@@ -38,16 +38,23 @@ data Result : Type where [external]
 
 -- TODO no idea what that e parameter is doing in the foreign function call
 -- but it doesn't work without it, there's `undefined` passed as the first param to this function
-%foreign promisifyPrim """
-(e, pool, q) => {
+%foreign """
+node:lambda:(e, pool, q) => {
   return pool.query({text: q, rowMode: 'array'}).then(res => {console.log(res); return res})
 }
 """
-prim__query : Pool -> String -> promise e Result
+prim__query : Pool -> String -> Promise e IO Result
+
+%foreign """
+node:lambda:(x) => {
+  console.log(x)
+}
+"""
+prim__print_result : Result -> Promise e IO ()
 
 public export
 query : Pool -> String -> Promise e IO Result
-query p s = promisify $ prim__query p s
+query p s = prim__query p s
 
 -- JS syntax has not been verified
 %foreign "node:lambda:x=>{console.log('count:'+x.rowCount);return x.rowCount}"
@@ -176,3 +183,63 @@ getAll r = do
   let parse = parseRow us r
   parsed <- traverse parse [0 .. rowCount-1]
   pure $ (us ** parsed)
+
+data Values : Type where [external]
+
+%foreign "node:lambda: () => []"
+prim__emptyValues : Values
+
+%foreign "node:lambda: (v,vs) => [v, ...vs]"
+prim__cons : AnyPtr -> Values -> Values
+
+convert : (us : List Universe) -> RowU us -> Values
+convert [] [] = prim__emptyValues
+convert (x :: xs) (v :: vs) = prim__cons (believe_me v) (convert xs vs)
+
+%foreign """
+node:lambda:(e, pool, q, ar) => {
+  return pool.query({text: q, values: ar, rowMode: 'array'}).then(res => {console.log(res); return res})
+}
+"""
+prim__query' : Pool -> String -> Values -> Promise e IO Result
+
+public export
+query' : Pool -> String -> (us : List Universe) -> RowU us -> Promise e IO Result
+query' p s us vs = prim__query' p s $ convert us vs
+
+%foreign """
+node:lambda: () => {
+  const { Pool, Client } = require('pg')
+  const pool = new Pool(
+  {
+    user: 'postgres',
+    host: '127.0.0.1',
+    database: 'foo',
+    password: 'admin',
+    port: 5432,
+  }
+  )
+  return pool
+}
+"""
+prim__get_pool_ : PrimIO Pool
+
+-- for querying
+export
+getPool_ : HasIO io => io Pool
+getPool_ = primIO $ prim__get_pool
+
+covering
+mainJS : Pool -> Promise e IO ()
+mainJS pool = do
+  r <- query pool "SELECT * FROM users"
+  prim__print_result r
+  pure ()
+
+covering
+main : IO ()
+main = do
+  pool <- getPool_
+  -- let prom = mainJS pool
+  runPromise {e=String} (\x => pure ()) (\_ => pure ()) $ mainJS pool
+  pure () -- resolve prom (\x => putStrLn "Promise: \{show x}") (\err => putStrLn ("Error: " ++ err))

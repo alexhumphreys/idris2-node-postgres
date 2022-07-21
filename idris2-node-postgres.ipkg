@@ -13,12 +13,11 @@ package idris2-node-postgres
 -- langversion
 
 -- packages to add to search path
--- depends =
+depends = promise
 
 -- modules to install
 modules = Main
   , PG.Postgres
-  , PG.Promise
   , PG.Util
 
 -- main file (i.e. file to load at REPL)
