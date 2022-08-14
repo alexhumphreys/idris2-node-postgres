@@ -14,6 +14,10 @@ package idris2-node-postgres
 
 -- packages to add to search path
 depends = promise
+  , contrib
+  , elab-util
+  , sop
+  , json
 
 -- modules to install
 modules =
