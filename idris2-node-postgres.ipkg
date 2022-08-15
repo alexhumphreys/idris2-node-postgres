@@ -24,7 +24,7 @@ modules =
   PG.Postgres
 
 -- main file (i.e. file to load at REPL)
-main = PG.Postgres
+main = PG.Main
 
 -- name of executable
 executable = "idris2-node-postgres"
